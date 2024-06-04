@@ -14,7 +14,7 @@ npm run start
 npm run start:dev
 ```
 ### Step 3 : Test API with Postman
-1. Export Task API `Test.postman_collection.json` on Postman
+1. Export file `Task API Test.postman_collection.json` on Postman
 2. Test the API with body example
 ```
 {

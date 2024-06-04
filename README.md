@@ -24,3 +24,4 @@ npm run start:dev
     "item": ["Baju", "Celana"]
 }
 ```
+#### Note: make sure to change the generated task `id` from the previously created task `id`. Just in case if using it for `GET('task/id')`, `POST('/task/id')`, and `DELETE('/task/id')`.

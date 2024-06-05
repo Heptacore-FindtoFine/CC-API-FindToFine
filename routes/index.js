@@ -3,6 +3,6 @@ const router = express.Router();
 
 const taskRoute = require('./taskRoute');
 
-router.use('/task', taskRoute)
+router.use('/task', taskRoute);
 
 module.exports = router;

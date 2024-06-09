@@ -1,32 +1,59 @@
 const crypto = require('crypto');
+const { bucket, storage } = require('../config/cloudStorage');
+const multer = require('multer');
 
 let tasks = [];
 
 exports.createTask = async (req, res) => {
-  const { title, image, startDate, finishDate, location, description, item } = req.body;
-  const id = crypto.randomUUID();
+  try {
+    const image = req.file;
+    if (!image) {
+      return res.status(400).json({ message: 'File tidak ditemukan' });
+    }
 
-  const createdAt = new Date().toISOString();
-  const updatedAt = createdAt;
+    const { title, startDate, finishDate, location, description, item } = req.body;
+    const id = crypto.randomUUID();
 
-  // Inisialisasi status item menjadi false
-  const items = item.map(name => ({ name, checked: false }));
+    console.log('Image Path:', image.path);
+    console.log('Image:', image);
+    const imageUrl = `${req.protocol}://${req.get('host')}/uploads/${image.filename}`;
 
-  const newTask = {
-    id,
-    title,
-    image,
-    startDate: new Date(startDate),
-    finishDate: new Date(finishDate),
-    location,
-    description,
-    items,
-    createdAt,
-    updatedAt
+    // if (!uploadedFile || uploadedFile.length === 0) {
+    //   return res.status(404).json({ message: 'File tidak ditemukan' });
+    // }
+
+    // const fileId = crypto.randomUUID();
+    // const fileName = `${fileId}_${image.originalname}`;
+    // const storageFile = bucket.file(fileName);
+    // await storageFile.save(image.buffer);
+    // const publicUrl = `https://storage.googleapis.com/${bucket.name}/taskImage/${fileName}`;
+
+    const createdAt = new Date().toISOString();
+    const updatedAt = createdAt;
+
+    // Inisialisasi status item menjadi false
+    const items = item.map(name => ({ name, checked: false }));
+    // const imageString = imageBuffer.toString('base64');
+
+    const newTask = {
+      'id': id,
+      'title': title,
+      'image': imageUrl,
+      'startDate': new Date(startDate),
+      'finishDate': new Date(finishDate),
+      'location': location,
+      'description': description,
+      'items': items,
+      'createdAt': createdAt,
+      'updatedAt': updatedAt
+    };
+
+    tasks.push(newTask);
+    res.status(201).json(newTask);
+  } catch (error) {
+    // console.log(err);
+    res.status(500).json({ message: 'Terjadi kesalahan saat upload file' });
   };
-
-  tasks.push(newTask);
-  res.status(201).json(newTask);
 };
 
 exports.updateTask = async (req, res) => {
@@ -55,6 +82,7 @@ exports.updateTask = async (req, res) => {
   };
 
   res.status(200).json(tasks[index]);
+
 };
 
 exports.toggleItemStatus = async (req, res) => {

@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "heptacore-findtofine",
+  "private_key_id": "af2df1c02875e2d3bfa47989f7665c3e7118d418",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQCk2Hpuo3Mu7j2/\nX4AY2pbxxJCQXbCCrvMfXODz4YYU132VuU+zoIgyt+fFzhkEWsv7GbQGzOO+GJ+8\nfC6b3+TeBV9T8vz3UHDiGS0qAEBxTHdFJ1M71P31J3uuKX4uNXUMxXEav7pACoYW\naR0JA4WWErFr6iIxEV0VYITn/w7pfvnJJWr+H9C6tArrQc+NNwor1v+F9Z6pT3tV\nTncrQglCsixkQRSKFM5wP1BVWEl3hlWNsIEnT1Wk5avt4fvzNbebM8OXwbXNsFi9\nuvz/V0SWVCG2SCCstVfdE+8+cn3epOp8lt/D/dCQFAm638hr9NFYsBi3nAF05Nf1\nVjpkxJ9jAgMBAAECggEAO3/jmSGoBo15fiTTUKU9jGBdqa4XcuQA3xYgIAcL5WPu\ncWdkzDoqTtwwbSY5w2eebrDVWQsFPO0YYukTzbFfo3+e6+ctxXqkdAeQVLOojvyB\npFVQZq03SRCKRM+3OqiS6hwt+fCwIkNqKJaiI0nBIuz2WzQ0SS+yQHAJKM/YKxDT\n/cYZnZq7fEvuPcegipHWhy4YZep1zR8FXhQb9kODTKSNAEwyzoc2R7R0R1928mCk\nLxhoVvOyjKFhUVA1GzZ+nlf5d0FLjT7eSmMcSmnDyHtCT1TAWKXz8C7N7QVqcfqO\nDUVrdSjTj9ZRwsU0bkfv0JndtccuCXno6jH5iBdkGQKBgQDfBMCotI68q1wzVHn/\nup+Ch/DoLe0WUaEniPT8MiTK6MpHD+6ZWtEMqyO+WJ+0/JLo7MKosdzteBJus98p\n8fY5LpWrcA8khpSpkaXYei/SfKZRO+btkT4rsNiln8MHDSzUDVC2G5sHXFcNo8Zm\nd+m6BsR2blk/MUaHbLUz8MUgLwKBgQC9OVv9HAMcfXn9xeFcENvkkhFc8Qol7ftr\nbtRVfd2PNpgxo3wUqyWIUMsNkXQrT739JtC9Zjg4nl9xGdSxANoXYG+luqT6Ew84\n2ZSRMP0sA0mMcW3VKnvJjFuD2GsYUzTAWHz4LtwjgajcFoEZy9LsMsnPopw/+py4\nMB15GmmTDQKBgQDNZQ0i0xfaf1+tDpJFidU6XITs8M84DPoE9UfbtTrZfcg95lhy\n+Icrybpjpi+AelW7G8Kzpwu30Sv4tMRFV0jTpSnG+K+ZjjEActlxJCdDDfYHPsoR\n5gCCMJ92+kqeBe5RZen9rjL7dnneYAVrfejOoUjzYfHkFzfDpcTFD2wdlQKBgCtP\nLZbJCo1CyuEioWoJEctHA2JaaRA1YA4+16qZnFRjEoKKAKRaZ8TDeTYpzIT9Q2bl\ns3EmLEgJN58TYnMA1uny0JsGFSyHoDxK0I5KwCeKuRLEA3d+ucZvsaKDrj9rC+/a\nUQAc+ZXG33dAT1wwIp6dIUO83DZojeY6XQSS3wchAoGBANu1ZuE1OyBlSzXl/53y\n4ATALZp0g5j6uwWIHrZr3dd9uSPsmy62dt1PxDVVlkXs8L4h4iqG6XfDzPCrdAcK\nEm6dcNAMpP0Ku61jK+Yxuiea2N6Zq8QdW8tunCu/v3VaSB0ili3gthprdwTusURB\ngPg1J5BttPxI6CdqYkzVdMhv\n-----END PRIVATE KEY-----\n",
+  "client_email": "findtofine-backend@heptacore-findtofine.iam.gserviceaccount.com",
+  "client_id": "116710017565727453855",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/findtofine-backend%40heptacore-findtofine.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}

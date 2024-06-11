@@ -12,16 +12,9 @@ const {
 
 const router = express.Router();
 
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, './uploads')
-  },
-  filename: function (req, file, cb) {
-    cb(null, file.originalname)
-  }
-})
-
-const upload = multer({ storage: storage });
+// Konfigurasi multer dengan memory storage
+const multerStorage = multer.memoryStorage();
+const upload = multer({ storage: multerStorage });
 
 router.post('/', upload.single('image'), createTask);
 router.put('/:id', updateTask);

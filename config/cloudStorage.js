@@ -5,7 +5,6 @@ const { Storage } = require('@google-cloud/storage');
 // diisi sesuai GCS yang ada di google cloud console, untuk key nya bisa membuat di service account
 const storage = new Storage({
   projectId: 'heptacore-findtofine',
-  key: './cloudStoreKey.json',
 });
 
 const bucket = storage.bucket('findtofine'); // diisi sesuai nama bucket yang dipakai

@@ -2,56 +2,113 @@ const crypto = require('crypto');
 const { bucket, storage } = require('../config/cloudStorage');
 const firestore = require('../config/firestore')
 
+// exports.createTask = async (req, res) => {
+//   try {
+//     const image = req.file;
+//     if (!image) {
+//       return res.status(400).json({ message: 'File tidak ditemukan' });
+//     }
+
+//     const { title, startDate, finishDate, location, description } = req.body;
+//     const id = crypto.randomUUID();
+
+//     const blob = bucket.file(`taskImage/${id}_${image.originalname}`);
+//     const blobStream = blob.createWriteStream({
+//       resumable: false
+//     });
+
+//     blobStream.on('error', (err) => {
+//       console.error('Upload Error:', err);
+//       res.status(500).json({ message: 'An error occurred while uploading the file' });
+//     });
+
+//     blobStream.on('finish', async () => {
+//       const imageUrl = `https://storage.googleapis.com/${bucket.name}/${blob.name}`;
+
+//       const createdAt = new Date().toISOString();
+//       const updatedAt = createdAt;
+
+//       const items = Array.isArray(req.body.items) ? req.body.items.map(name => ({ name, checked: false })) : [];
+
+//       const newTask = {
+//         id: id,
+//         title: title,
+//         image: imageUrl,
+//         startDate: new Date(startDate).toISOString(),
+//         finishDate: new Date(finishDate).toISOString(),
+//         location: location,
+//         description: description,
+//         items: items,
+//         createdAt: createdAt,
+//         updatedAt: updatedAt
+//       };
+
+//       // Simpan ke Firestore
+//       await firestore.collection('tasks').doc(id).set(newTask);
+//       res.status(201).json(newTask);
+//     });
+
+//     blobStream.end(image.buffer);
+//   } catch (error) {
+//     console.log('Error:', error);
+//     res.status(500).json({ message: 'An error occurred while uploading the file' });
+//   }
+// };
+
 exports.createTask = async (req, res) => {
   try {
-    const image = req.file;
-    if (!image) {
-      return res.status(400).json({ message: 'File tidak ditemukan' });
-    }
-
     const { title, startDate, finishDate, location, description } = req.body;
     const id = crypto.randomUUID();
 
-    const blob = bucket.file(`taskImage/${id}_${image.originalname}`);
-    const blobStream = blob.createWriteStream({
-      resumable: false
-    });
+    // Fungsi untuk mengupload gambar ke bucket
+    const uploadImage = async (file, path) => {
+      return new Promise((resolve, reject) => {
+        const blob = bucket.file(`${path}/${id}_${file.originalname}`);
+        const blobStream = blob.createWriteStream({ resumable: false });
 
-    blobStream.on('error', (err) => {
-      console.error('Upload Error:', err);
-      res.status(500).json({ message: 'An error occurred while uploading the file' });
-    });
+        blobStream.on('error', reject);
 
-    blobStream.on('finish', async () => {
-      const imageUrl = `https://storage.googleapis.com/${bucket.name}/${blob.name}`;
+        blobStream.on('finish', () => {
+          const imageUrl = `https://storage.googleapis.com/${bucket.name}/${blob.name}`;
+          resolve(imageUrl);
+        });
 
-      const createdAt = new Date().toISOString();
-      const updatedAt = createdAt;
+        blobStream.end(file.buffer);
+      });
+    };
 
-      const items = Array.isArray(req.body.items) ? req.body.items.map(name => ({ name, checked: false })) : [];
+    // Upload image thumbnail
+    const imageUrl = await uploadImage(req.files.image[0], 'taskImage');
 
-      const newTask = {
-        id: id,
-        title: title,
-        image: imageUrl,
-        startDate: new Date(startDate).toISOString(),
-        finishDate: new Date(finishDate).toISOString(),
-        location: location,
-        description: description,
-        items: items,
-        createdAt: createdAt,
-        updatedAt: updatedAt
-      };
+    // Upload item images
+    const itemImages = await Promise.all(
+      req.files.items.map(file => uploadImage(file, 'itemImages'))
+    );
 
-      // Simpan ke Firestore
-      await firestore.collection('tasks').doc(id).set(newTask);
-      res.status(201).json(newTask);
-    });
+    const createdAt = new Date().toISOString();
+    const updatedAt = createdAt;
 
-    blobStream.end(image.buffer);
+    const itemsArray = itemImages.map(imageUrl => ({ imageUrl, checked: false }));
+
+    const newTask = {
+      id: id,
+      title: title,
+      image: imageUrl,
+      startDate: new Date(startDate).toISOString(),
+      finishDate: new Date(finishDate).toISOString(),
+      location: location,
+      description: description,
+      items: itemsArray,
+      createdAt: createdAt,
+      updatedAt: updatedAt
+    };
+
+    // Simpan ke Firestore
+    await firestore.collection('tasks').doc(id).set(newTask);
+    res.status(201).json(newTask);
   } catch (error) {
     console.log('Error:', error);
-    res.status(500).json({ message: 'An error occurred while uploading the file' });
+    res.status(500).json({ message: 'An error occurred while creating the task' });
   }
 };
 

@@ -1,8 +1,7 @@
 const crypto = require('crypto');
 const { bucket, storage } = require('../config/cloudStorage');
-const firestore = require('../config/firestore')
-
-// exports.createTask = async (req, res) => {
+const { db, auth, firebase } = require('../config/firebase');
+const { equal } = require('assert');
 //   try {
 //     const image = req.file;
 //     if (!image) {
@@ -57,7 +56,9 @@ const firestore = require('../config/firestore')
 
 exports.createTask = async (req, res) => {
   try {
+    const userId = req.user.uid;
     const { title, startDate, finishDate, location, description } = req.body;
+
     const id = crypto.randomUUID();
 
     // Fungsi untuk mengupload gambar ke bucket
@@ -104,7 +105,7 @@ exports.createTask = async (req, res) => {
     };
 
     // Simpan ke Firestore
-    await firestore.collection('tasks').doc(id).set(newTask);
+    await db.collection('users').doc(userId).collection('tasks').doc(id).set(newTask);
     res.status(201).json(newTask);
   } catch (error) {
     console.log('Error:', error);
@@ -114,13 +115,14 @@ exports.createTask = async (req, res) => {
 
 
 exports.updateTask = async (req, res) => {
+  const userId = req.user.uid;
   const { id } = req.params;
   const { title, startDate, finishDate, location, description, items } = req.body;
 
   const updatedAt = new Date().toISOString();
 
   try {
-    const taskRef = firestore.collection('tasks').doc(id);
+    const taskRef = db.collection('users').doc(userId).collection('tasks').doc(id);
     const doc = await taskRef.get();
 
     if (!doc.exists) {
@@ -152,10 +154,11 @@ exports.updateTask = async (req, res) => {
 };
 
 exports.toggleItemStatus = async (req, res) => {
+  const userId = req.user.uid;
   const { id, itemName } = req.params;
 
   try {
-    const taskRef = firestore.collection('tasks').doc(id);
+    const taskRef = db.collection('users').doc(userId).collection('tasks').doc(id);
     const doc = await taskRef.get();
 
     if (!doc.exists) {
@@ -185,10 +188,11 @@ exports.toggleItemStatus = async (req, res) => {
 };
 
 exports.deleteTask = async (req, res) => {
+  const userId = req.user.uid;
   const { id } = req.params;
 
   try {
-    await firestore.collection('tasks').doc(id).delete();
+    await db.collection('users').doc(userId).collection('tasks').doc(id).delete();
     res.status(200).json({ message: 'Task deleted successfully' });
   } catch (error) {
     console.error('Error deleting task:', error);
@@ -197,8 +201,9 @@ exports.deleteTask = async (req, res) => {
 };
 
 exports.listTask = async (req, res) => {
+  const userId = req.user.uid;
   try {
-    const snapshot = await firestore.collection('tasks').get();
+    const snapshot = await db.collection('users').doc(userId).collection('tasks').get();
     const listedTask = [];
 
     snapshot.forEach(doc => {
@@ -222,11 +227,11 @@ exports.listTask = async (req, res) => {
 };
 
 exports.detailTask = async (req, res) => {
+  const userId = req.user.uid;
   const { id } = req.params;
 
   try {
-    const doc = await firestore.collection('tasks').doc(id).get();
-
+    const doc = await db.collection('users').doc(userId).collection('tasks').doc(id).get();
     if (!doc.exists) {
       return res.status(404).json({ message: 'Task not found' });
     }

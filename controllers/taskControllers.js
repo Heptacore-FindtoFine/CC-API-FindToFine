@@ -1,58 +1,18 @@
 const crypto = require('crypto');
-const { bucket, storage } = require('../config/cloudStorage');
-const { db, auth, firebase } = require('../config/firebase');
-const { equal } = require('assert');
-//   try {
-//     const image = req.file;
-//     if (!image) {
-//       return res.status(400).json({ message: 'File tidak ditemukan' });
-//     }
+const axios = require('axios');
+const { bucket } = require('../config/cloudStorage');
+const { db } = require('../config/firebase');
 
-//     const { title, startDate, finishDate, location, description } = req.body;
-//     const id = crypto.randomUUID();
-
-//     const blob = bucket.file(`taskImage/${id}_${image.originalname}`);
-//     const blobStream = blob.createWriteStream({
-//       resumable: false
-//     });
-
-//     blobStream.on('error', (err) => {
-//       console.error('Upload Error:', err);
-//       res.status(500).json({ message: 'An error occurred while uploading the file' });
-//     });
-
-//     blobStream.on('finish', async () => {
-//       const imageUrl = `https://storage.googleapis.com/${bucket.name}/${blob.name}`;
-
-//       const createdAt = new Date().toISOString();
-//       const updatedAt = createdAt;
-
-//       const items = Array.isArray(req.body.items) ? req.body.items.map(name => ({ name, checked: false })) : [];
-
-//       const newTask = {
-//         id: id,
-//         title: title,
-//         image: imageUrl,
-//         startDate: new Date(startDate).toISOString(),
-//         finishDate: new Date(finishDate).toISOString(),
-//         location: location,
-//         description: description,
-//         items: items,
-//         createdAt: createdAt,
-//         updatedAt: updatedAt
-//       };
-
-//       // Simpan ke Firestore
-//       await firestore.collection('tasks').doc(id).set(newTask);
-//       res.status(201).json(newTask);
-//     });
-
-//     blobStream.end(image.buffer);
-//   } catch (error) {
-//     console.log('Error:', error);
-//     res.status(500).json({ message: 'An error occurred while uploading the file' });
-//   }
-// };
+// Fungsi untuk memanggil API FastAPI
+const getPrediction = async (imageUrl) => {
+  try {
+    const response = await axios.post('https://ml-model-api-izoaerx5sa-et.a.run.app/predict', { image_url: imageUrl });
+    return response.data.predicted_class;
+  } catch (error) {
+    console.error('Error:', error);
+    throw new Error('Failed to get prediction');
+  }
+};
 
 exports.createTask = async (req, res) => {
   try {
@@ -89,7 +49,10 @@ exports.createTask = async (req, res) => {
     const createdAt = new Date().toISOString();
     const updatedAt = createdAt;
 
-    const itemsArray = itemImages.map(imageUrl => ({ imageUrl, checked: false }));
+    const itemsArray = await Promise.all(itemImages.map(async (imageUrl) => {
+      const predictedClass = await getPrediction(imageUrl);
+      return { image: imageUrl, name: predictedClass, checked: false };
+    }));
 
     const newTask = {
       id: id,
@@ -113,11 +76,10 @@ exports.createTask = async (req, res) => {
   }
 };
 
-
 exports.updateTask = async (req, res) => {
   const userId = req.user.uid;
   const { id } = req.params;
-  const { title, startDate, finishDate, location, description, items } = req.body;
+  const { title, startDate, finishDate, location, description, items, createdAt } = req.body;
 
   const updatedAt = new Date().toISOString();
 
@@ -129,17 +91,36 @@ exports.updateTask = async (req, res) => {
       return res.status(404).json({ message: 'Task not found' });
     }
 
-    console.log(title);
+    // Mengambil data task yang ada untuk mempertahankan image dan checked
+    const existingTask = doc.data();
+
     // Create an update object with only defined properties
     const updateObject = {
-      updatedAt,
-      ...(title !== undefined && { title : title }),
+      ...(title !== undefined && { title: title }),
       ...(startDate !== undefined && { startDate: new Date(startDate) }),
       ...(finishDate !== undefined && { finishDate: new Date(finishDate) }),
       ...(location !== undefined && { location }),
       ...(description !== undefined && { description }),
-      ...(items !== undefined && { items: items.map(name => ({ name, checked: false })) })
+      ...(createdAt !== undefined && { createdAt: createdAt }),
+      updatedAt
     };
+
+    // Mengupdate items jika disediakan
+    if (items !== undefined) {
+      const updatedItems = existingTask.items.map(existingItem => {
+        const newItem = items.find(item => item.image === existingItem.image);
+        if (newItem) {
+          return {
+            image: existingItem.image,
+            name: newItem.name !== undefined ? newItem.name : existingItem.name,
+            status: existingItem.status,
+          };
+        }
+        return existingItem;
+      });
+
+      updateObject.items = updatedItems;
+    }
 
     await taskRef.update(updateObject);
 
@@ -155,7 +136,8 @@ exports.updateTask = async (req, res) => {
 
 exports.toggleItemStatus = async (req, res) => {
   const userId = req.user.uid;
-  const { id, itemName } = req.params;
+  const { id } = req.params;
+  const { name } = req.body;
 
   try {
     const taskRef = db.collection('users').doc(userId).collection('tasks').doc(id);
@@ -166,7 +148,7 @@ exports.toggleItemStatus = async (req, res) => {
     }
 
     const task = doc.data();
-    const itemIndex = task.items.findIndex(item => item.name.toLowerCase() === itemName.toLowerCase());
+    const itemIndex = task.items.findIndex(item => item.name.toLowerCase() === name.toLowerCase());
 
     if (itemIndex === -1) {
       return res.status(404).json({ message: 'Item not found' });
@@ -174,6 +156,14 @@ exports.toggleItemStatus = async (req, res) => {
 
     task.items[itemIndex].checked = !task.items[itemIndex].checked;
     task.updatedAt = new Date().toISOString();
+
+    // Convert Firestore Timestamps to ISO strings
+    if (task.startDate && task.startDate.toDate) {
+      task.startDate = task.startDate.toDate().toISOString();
+    }
+    if (task.finishDate && task.finishDate.toDate) {
+      task.finishDate = task.finishDate.toDate().toISOString();
+    }
 
     await taskRef.update({
       items: task.items,
@@ -186,6 +176,7 @@ exports.toggleItemStatus = async (req, res) => {
     res.status(500).json({ message: 'An error occurred while changing the item status.' });
   }
 };
+
 
 exports.deleteTask = async (req, res) => {
   const userId = req.user.uid;
@@ -208,16 +199,26 @@ exports.listTask = async (req, res) => {
 
     snapshot.forEach(doc => {
       const task = doc.data();
+
+      // Convert Firestore Timestamps to ISO strings
+      if (task.startDate && task.startDate.toDate) {
+        task.startDate = task.startDate.toDate().toISOString();
+      }
+      if (task.finishDate && task.finishDate.toDate) {
+        task.finishDate = task.finishDate.toDate().toISOString();
+      }
+
       listedTask.push({
         id: task.id,
         title: task.title,
         image: task.image,
-        startDate: new Date(task.startDate),
-        finishDate: new Date(task.finishDate),
+        startDate: task.startDate,
+        finishDate: task.finishDate,
         location: task.location,
         items: task.items.length
       });
     });
+
 
     res.status(200).json(listedTask);
   } catch (error) {
@@ -237,6 +238,15 @@ exports.detailTask = async (req, res) => {
     }
 
     const task = doc.data();
+
+    // Convert Firestore Timestamps to ISO strings
+    if (task.startDate && task.startDate.toDate) {
+      task.startDate = task.startDate.toDate().toISOString();
+    }
+    if (task.finishDate && task.finishDate.toDate) {
+      task.finishDate = task.finishDate.toDate().toISOString();
+    }
+
     res.status(200).json(task);
   } catch (error) {
     console.error('Error fetching task details:', error);

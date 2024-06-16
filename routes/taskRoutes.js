@@ -22,10 +22,10 @@ const upload = multer({
 
 router.post('/', verifyToken, upload.fields([
   { name: 'image', maxCount: 1 },
-  { name: 'items', maxCount: 10 }
+  { name: 'items' }
 ]), createTask);
 router.put('/:id', verifyToken, updateTask);
-router.put('/:id/item/:itemName', verifyToken, toggleItemStatus);
+router.put('/:id/items', verifyToken, toggleItemStatus);
 router.delete('/:id', verifyToken, deleteTask);
 router.get('/', verifyToken, listTask);
 router.get('/:id', verifyToken, detailTask);

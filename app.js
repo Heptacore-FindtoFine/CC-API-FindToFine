@@ -8,6 +8,7 @@ const routes = require('./routes/index');
 // Middelware
 app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true}));
 
 // Gunakan rute utama
 app.use('/', routes);

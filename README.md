@@ -163,7 +163,7 @@ https://task-api-izoaerx5sa-et.a.run.app
      ]
    }
    ```
-- Response Success :
+- Response Success:
    - Status Code: `200`
    - Body:
    ```
@@ -180,7 +180,7 @@ https://task-api-izoaerx5sa-et.a.run.app
          {
            "image": "string",
            "name": "string",
-           "checked": false
+           "checked": "boolean"
          }
        ],
        "createdAt": "string (ISO 8601 date format)",
@@ -198,21 +198,49 @@ https://task-api-izoaerx5sa-et.a.run.app
       ```
 
 ### 3. UPDATE ItemStatus Task API
-Endpoint : PUT /task/:id/items
-Header : 
-- Authorization: user-token
-Request Body :
-```
-{}
-```
-Response Body Success :
-```
-{}
-```
-Response Body Error :
-```
-{}
-```
+- Method: `PUT`
+- Endpoint: `/task/:id/items`
+- Header: 
+   - Authorization: Bearer user-token
+- Request:
+   - Body:
+   ```
+   {
+      "name": "string"
+   }
+   ```
+- Response Success:
+   - Status Code: `200`
+   - Body: 
+      ```
+      {
+        "id": "string",
+        "title": "string",
+        "image": "string (URL)",
+        "startDate": "string (ISO 8601 date format)",
+        "finishDate": "string (ISO 8601 date format)",
+        "location": "string",
+        "description": "string",
+        "items": [
+          {
+            "image": "string (URL)",
+            "name": "string",
+            "checked": "boolean"
+          }
+        ],
+        "createdAt": "string (ISO 8601 date format)",
+        "updatedAt": "string (ISO 8601 date format)"
+      }
+      ```
+Response Error:
+- Status Code: `500`
+- Body:
+   ```
+   {
+      "message": "An error occurred while changing the item status."
+   }
+   ```
+
 ### 4. GET All Task API
 Endpoint : GET /task
 Header : 

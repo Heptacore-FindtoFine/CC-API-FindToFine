@@ -10,7 +10,7 @@ const getPrediction = async (imageUrl) => {
     return response.data.predicted_class;
   } catch (error) {
     console.error('Error:', error);
-    throw new Error('Failed to get prediction');
+    throw new Error('Gagal untuk mendapatkan prediksi');
   }
 };
 
@@ -54,6 +54,9 @@ exports.createTask = async (req, res) => {
       return { image: imageUrl, name: predictedClass, checked: false };
     }));
 
+    // Mendefinisikan status task
+    const status = false;
+
     const newTask = {
       id: id,
       title: title,
@@ -63,6 +66,7 @@ exports.createTask = async (req, res) => {
       location: location,
       description: description,
       items: itemsArray,
+      status: status,
       createdAt: createdAt,
       updatedAt: updatedAt
     };
@@ -71,15 +75,15 @@ exports.createTask = async (req, res) => {
     await db.collection('users').doc(userId).collection('tasks').doc(id).set(newTask);
     res.status(201).json(newTask);
   } catch (error) {
-    console.log('Error:', error);
-    res.status(500).json({ message: 'An error occurred while creating the task' });
+    console.error('Error while creating task:', error);
+    res.status(500).json({ message: 'Terjadi kesalahan saat membuat task' });
   }
 };
 
 exports.updateTask = async (req, res) => {
   const userId = req.user.uid;
   const { id } = req.params;
-  const { title, startDate, finishDate, location, description, items, createdAt } = req.body;
+  const { title, startDate, finishDate, location, description, items, status, createdAt } = req.body;
 
   const updatedAt = new Date().toISOString();
 
@@ -99,8 +103,9 @@ exports.updateTask = async (req, res) => {
       ...(title !== undefined && { title: title }),
       ...(startDate !== undefined && { startDate: new Date(startDate) }),
       ...(finishDate !== undefined && { finishDate: new Date(finishDate) }),
-      ...(location !== undefined && { location }),
-      ...(description !== undefined && { description }),
+      ...(location !== undefined && { location: location }),
+      ...(description !== undefined && { description: description }),
+      ...(status !== undefined && { status: status }),
       ...(createdAt !== undefined && { createdAt: createdAt }),
       updatedAt
     };
@@ -129,8 +134,8 @@ exports.updateTask = async (req, res) => {
       value: updateObject,
     });
   } catch (error) {
-    console.error('Error updating task:', error);
-    res.status(500).json({ message: 'Error updating task' });
+    console.error('Error while updating task:', error);
+    res.status(500).json({ message: 'Terjadi kesalahan saat memperbarui task' });
   }
 };
 
@@ -173,7 +178,7 @@ exports.toggleItemStatus = async (req, res) => {
     res.status(200).json(task);
   } catch (error) {
     console.error('Error toggling item status:', error);
-    res.status(500).json({ message: 'An error occurred while changing the item status.' });
+    res.status(500).json({ message: 'Terjadi kesalahan saat mengubah status item' });
   }
 };
 
@@ -184,10 +189,10 @@ exports.deleteTask = async (req, res) => {
 
   try {
     await db.collection('users').doc(userId).collection('tasks').doc(id).delete();
-    res.status(200).json({ message: 'Task deleted successfully' });
+    res.status(200).json({ message: 'Task berhasil dihapus' });
   } catch (error) {
     console.error('Error deleting task:', error);
-    res.status(500).json({ message: 'An error occurred while deleting the task' });
+    res.status(500).json({ message: 'Terjadi kesalahan saat menghapus task' });
   }
 };
 
@@ -215,7 +220,10 @@ exports.listTask = async (req, res) => {
         startDate: task.startDate,
         finishDate: task.finishDate,
         location: task.location,
-        items: task.items.length
+        items: task.items.length,
+        status: task.status,
+        createdAt: task.createdAt,
+        updatedAt: task.updatedAt
       });
     });
 
@@ -223,7 +231,7 @@ exports.listTask = async (req, res) => {
     res.status(200).json(listedTask);
   } catch (error) {
     console.error('Error listing tasks:', error);
-    res.status(500).json({ message: 'An error occurred while retrieving the task list' });
+    res.status(500).json({ message: 'Terjadi kesalahan saat mengambil daftar task' });
   }
 };
 
@@ -250,6 +258,6 @@ exports.detailTask = async (req, res) => {
     res.status(200).json(task);
   } catch (error) {
     console.error('Error fetching task details:', error);
-    res.status(500).json({ message: 'An error occurred while retrieving task details' });
+    res.status(500).json({ message: 'Terjadi kesalahan saat mengambil detail task' });
   }
 };

@@ -47,7 +47,7 @@ const loginUser = async (req, res) => {
     });
   } catch (error) {
     console.log(error);
-    res.status(401).send('Unauthorized')
+    res.status(401).json({ message: 'Login gagal, periksa kembali Email atau Password' })
   }
 };
 

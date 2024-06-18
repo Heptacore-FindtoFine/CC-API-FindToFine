@@ -142,7 +142,14 @@ exports.updateTask = async (req, res) => {
 exports.toggleItemStatus = async (req, res) => {
   const userId = req.user.uid;
   const { id } = req.params;
-  const { name } = req.body;
+  let { name } = req.body;
+
+  // Ensure name is always an array
+  if (typeof name === 'string') {
+    name = [name];
+  } else if (!Array.isArray(name)) {
+    return res.status(400).json({ message: 'Name should be a string or an array' });
+  }
 
   try {
     const taskRef = db.collection('users').doc(userId).collection('tasks').doc(id);
@@ -153,13 +160,21 @@ exports.toggleItemStatus = async (req, res) => {
     }
 
     const task = doc.data();
-    const itemIndex = task.items.findIndex(item => item.name.toLowerCase() === name.toLowerCase());
+    let itemUpdated = false;
 
-    if (itemIndex === -1) {
-      return res.status(404).json({ message: 'Item not found' });
+    name.forEach(itemName => {
+      const itemIndex = task.items.findIndex(item => item.name.toLowerCase() === itemName.toLowerCase());
+
+      if (itemIndex !== -1) {
+        task.items[itemIndex].checked = !task.items[itemIndex].checked;
+        itemUpdated = true;
+      }
+    });
+
+    if (!itemUpdated) {
+      return res.status(404).json({ message: 'No items found to update' });
     }
 
-    task.items[itemIndex].checked = !task.items[itemIndex].checked;
     task.updatedAt = new Date().toISOString();
 
     // Convert Firestore Timestamps to ISO strings
@@ -181,7 +196,6 @@ exports.toggleItemStatus = async (req, res) => {
     res.status(500).json({ message: 'Terjadi kesalahan saat mengubah status item' });
   }
 };
-
 
 exports.deleteTask = async (req, res) => {
   const userId = req.user.uid;

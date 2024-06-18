@@ -115,7 +115,6 @@ https://task-api-izoaerx5sa-et.a.run.app
    - Body:
       ```
       {
-            {
            "id": "string",
            "title": "string",
            "image": "string (URL)",
@@ -133,7 +132,6 @@ https://task-api-izoaerx5sa-et.a.run.app
            "status": "false"
            "createdAt": "string (ISO 8601 date format)",
            "updatedAt": "string (ISO 8601 date format)"
-            }
       }
       ```
 - Response Error:
@@ -209,9 +207,11 @@ https://task-api-izoaerx5sa-et.a.run.app
 - Request:
    - Body:
       ```
-      {
-         "name": "string"
-      }
+      [
+         {
+            "name": "string"
+         }
+      ]
       ```
 - Response Success:
    - Status Code: `200`
